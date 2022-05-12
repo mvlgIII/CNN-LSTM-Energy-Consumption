@@ -2,11 +2,14 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from tensorflow.python.keras.layers import Dense, LSTM, RepeatVector, TimeDistributed, Flatten
 
-def prepareData(test_file):
-    for i in range(len(test_file)):
-        pd.read_csv()
-    print("Data processed")
+def prepareData(train_file):
+    #for i in range(len(train_file)):
+        ##\print(pd.read_csv(train_file[i]))
+    #print("Data processed")
+    testRead = pd.read_csv("C:\\Users\\CA7\\Downloads\\KITCHEN_data_record.csv")
+    print(testRead.describe())
 
 def createModel():
     #CNN LSTM model creation
@@ -30,7 +33,7 @@ def trainModel():
 
     output_file = ["KITCHEN_result", "LIVINGROOM_result"]
 
-    prepareData(test_file)
+    prepareData(train_file)
     createModel()
     startTrain()
 
