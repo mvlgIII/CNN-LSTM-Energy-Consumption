@@ -5,8 +5,8 @@ import pandas as pd
 from tensorflow.python.keras.layers import Dense, LSTM, RepeatVector, TimeDistributed, Flatten
 
 def prepareData(train_file):
-    #for i in range(len(train_file)):
-        #print(pd.read_csv(train_file[i]))
+    for i in range(len(train_file)):
+        print(pd.read_csv(train_file[i]))
     print("Data processed")
 
 def createModel():
