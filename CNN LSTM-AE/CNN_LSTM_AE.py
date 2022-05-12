@@ -2,7 +2,6 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from tensorflow.python.keras.layers import Dense, LSTM, RepeatVector, TimeDistributed, Flatten
 
 def prepareData(train_file):
     for i in range(len(train_file)):
