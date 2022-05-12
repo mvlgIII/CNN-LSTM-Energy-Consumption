@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def prepareData(test_file):
-    for i in range(len(test_file)):
-        pd.read_csv()
+def prepareData(train_file):
+    for i in range(len(train_file)):
+        print(pd.read_csv(train_file[i]))
     print("Data processed")
 
 def createModel():
@@ -30,9 +30,9 @@ def trainModel():
 
     output_file = ["KITCHEN_result", "LIVINGROOM_result"]
 
-    prepareData(test_file)
-    createModel()
-    startTrain()
+    prepareData(train_file)
+    #createModel()
+    #startTrain()
 
 if __name__ == "__main__":
     trainModel()
