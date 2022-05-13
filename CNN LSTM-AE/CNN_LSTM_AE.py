@@ -1,12 +1,15 @@
+from types import DynamicClassAttribute
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def prepareData(train_file):
-    for i in range(len(train_file)):
-        print(pd.read_csv(train_file[i]))
-    print("Data processed")
+def prepareData(trainFile, step):
+    trainData = pd.read_csv(trainFile, parse_dates=['Time']).drop(['Type'], axis=1)
+    print(trainData.describe())
+    trainData = trainData.values
+    print(trainData)
+        
 
 def createModel():
     #CNN LSTM model creation
@@ -22,15 +25,21 @@ def startTrain():
     print("Model trained!")
 
 def trainModel():
-    train_file = ["KITCHEN_data_record.csv", "LIVINGROOM_data_record.csv", 
+    dataDir = ".//"
+    trainFile = ["KITCHEN_data_record.csv", "LIVINGROOM_data_record.csv", 
                  "CENTRALIZED_data_record.csv"]
 
-    test_file = ["KITCHEN_data_record.csv", "LIVINGROOM_data_record.csv", 
+    testFile = ["KITCHEN_data_record.csv", "LIVINGROOM_data_record.csv", 
                  "CENTRALIZED_data_record.csv"]
 
-    output_file = ["KITCHEN_result", "LIVINGROOM_result"]
+    outputFile = ["KITCHEN_result", "LIVINGROOM_result"]
 
-    prepareData(train_file)
+    nSteps = [5, 7, 9]
+    prepareData(dataDir + trainFile[0], 1)
+ #   for i in range(len(trainFile)):
+ #       for step in nSteps:
+ #           prepareData(dataDir + trainFile[i], step)
+ 
     #createModel()
     #startTrain()
 
