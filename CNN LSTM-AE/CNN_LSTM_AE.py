@@ -35,10 +35,9 @@ def trainModel():
     outputFile = ["KITCHEN_result", "LIVINGROOM_result"]
 
     nSteps = [5, 7, 9]
-    prepareData(dataDir + trainFile[0], 1)
- #   for i in range(len(trainFile)):
- #       for step in nSteps:
- #           prepareData(dataDir + trainFile[i], step)
+    for i in range(len(trainFile)):
+        for step in nSteps:
+            prepareData(dataDir + trainFile[i], step)
  
     #createModel()
     #startTrain()
