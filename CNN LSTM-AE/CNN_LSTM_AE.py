@@ -1,10 +1,13 @@
 from pandas.core.tools.datetimes import to_datetime
 import tensorflow as tf
-from tensorflow.keras import optimizers
+from tensorflow import keras
+from tensorflow.keras import optimizers, layers
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.layers import Bidirectional
 from tensorflow.python.keras.layers.convolutional import Conv1D, MaxPooling1D
-from tensorflow.python.keras.layers import Dense, LSTM, RepeatVector, Flatten
+from tensorflow.python.keras.layers import Dense, LSTM, RepeatVector
 
 import numpy as np
 import pandas as pd
@@ -33,10 +36,11 @@ def prepareData(trainFile, step):
 #Model creation - Assembles and compiles the whole network model to be used
 def createModel(shape):
     #CNN LSTM model creation
-    model = tf.keras.Sequential()
-    model.add(Conv1D(filters=128, kernel_size=2, activation='relu', input_shape=(shape)))
+    model = Sequential()
+    model.add(Conv1D(filters=3, kernel_size=3, activation='relu', input_shape=shape))
     model.add(MaxPooling1D(pool_size=2))
-    model.add(LSTM(50, activation='relu'))
+    model.add(Flatten())
+    model.add(Bidirectional(LSTM(50, activation='relu', return_sequences=True)))
     model.add(Dense(1))
     model.compile(loss='mse', optimizer='adam')
     print("Model created!")
