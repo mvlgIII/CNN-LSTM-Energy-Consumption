@@ -37,8 +37,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CENTRALIZED_data_record.csv" />
+    <Content Include="CENTRALIZED_test.xlsx" />
     <Content Include="KITCHEN_data_record.csv" />
+    <Content Include="KITCHEN_test.xlsx" />
     <Content Include="LIVINGROOM_data_record.csv" />
+    <Content Include="LIVINGROOM_test.xlsx" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
