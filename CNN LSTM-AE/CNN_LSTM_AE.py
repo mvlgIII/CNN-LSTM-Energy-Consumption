@@ -5,6 +5,7 @@ from tensorflow.python.keras import optimizers, layers
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Dense, LSTM, RepeatVector, Flatten
 from tensorflow.keras.layers import Conv1D, MaxPooling1D, Reshape, Bidirectional
+from tensorflow.keras.callbacks import EarlyStopping
 
 import numpy as np
 import pandas as pd
@@ -38,23 +39,26 @@ def prepareData(trainFile, step):
 def createModel(shape):
     #CNN LSTM model creation
     model = Sequential()
-    model.add(Conv1D(filters=5, kernel_size=2, activation='relu', input_shape=(shape[1], shape[2])))
+    model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(shape[1], shape[2])))
     model.add(MaxPooling1D(pool_size=2))
-    model.add(Bidirectional(LSTM(30, activation='relu', return_sequences=True)))
-    model.add(Dense(5))
+    model.add(Bidirectional(LSTM(50, activation='relu', return_sequences=True)))
+    model.add(Dense(1))
     model.add(Flatten())
     model.add(Dense(1))
-    model.summary()
-    model.compile(loss='mse', optimizer='adam')
-    print("Model created!")
+    #model.summary()
+    model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adam', metrics=[tf.keras.metrics.RootMeanSquaredError()])
+    #print("Model created!")
     return model
 
-#Training - Fits the model into the data and begins the training
-def startTrain(model, train_feature, train_label, validation_feature, validation_label):
-    dataInfo = model.fit(train_feature, train_label, epochs=30, batch_size=16, #batch size multiple of 2^x, early stopping
-                         validation_data=(validation_feature, validation_label))
+#Training - Fits the model into the data and begins the training while recording metric values
+def startTrain(model, train_feature, train_label, validation_feature, validation_label, metricFile):
+    dataInfo = model.fit(train_feature, train_label, epochs=100, batch_size=32, #batch size multiple of 2^x, early stopping
+                         validation_data=(validation_feature, validation_label),
+                         callbacks=[EarlyStopping(monitor='loss', patience=3)])
+    #metric = model.evaluate(validation_feature, validation_label)  
+    #print(metric)
     metric = open(metricFile, 'a')
-    for i in range(len(metricInfo.history['loss'])):
+    for i in range(len(dataInfo.history['loss'])):
         metric.write('{}, {}, {}, {}, {}\n'.format(i + 1, dataInfo.history['loss'][i],
                                                    dataInfo.history['val_loss'][i],
                                                    dataInfo.history['root_mean_squared_error'][i],
@@ -79,7 +83,12 @@ def trainModel():
             train_feature, train_label = prepareData(dataDir + trainFile[i], step)
             test_feature, test_label = prepareData(dataDir + testFile[i], step)
             model = createModel(train_feature.shape)
-            model = startTrain(model, train_feature, train_label, test_feature, test_label)
+            metricFile = dataDir + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
+            print("Training " + metricFile)
+            fle = open(metricFile, 'w')
+            fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
+            fle.close()
+            model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
 
 if __name__ == "__main__":
     trainModel()
