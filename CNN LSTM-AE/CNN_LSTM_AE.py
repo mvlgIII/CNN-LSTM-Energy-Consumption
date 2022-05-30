@@ -45,14 +45,14 @@ def createModel(shape):
     model.add(Dense(1))
     model.add(Flatten())
     model.add(Dense(1))
-    #model.summary()
     model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adam', metrics=[tf.keras.metrics.RootMeanSquaredError()])
+    model.summary()
     #print("Model created!")
     return model
 
 #Training - Fits the model into the data and begins the training while recording metric values
 def startTrain(model, train_feature, train_label, validation_feature, validation_label, metricFile):
-    dataInfo = model.fit(train_feature, train_label, epochs=100, batch_size=32, #batch size multiple of 2^x, early stopping
+    dataInfo = model.fit(train_feature, train_label, epochs=100, batch_size=32, #batch size multiple of 2^x, early stopping00
                          validation_data=(validation_feature, validation_label),
                          callbacks=[EarlyStopping(monitor='loss', patience=3)])
     #metric = model.evaluate(validation_feature, validation_label)  
@@ -75,7 +75,10 @@ def trainModel():
     testFile = ["KITCHEN_test.csv", "LIVINGROOM_test.csv", 
                  "CENTRALIZED_test.csv"]
 
-    outputFile = ["KITCHEN_result", "LIVINGROOM_result", "CENTRALIZED_result"]
+    outputFile = ["KITCHEN_result", "LIVINGROOM_result",
+                 "CENTRALIZED_result"]
+    
+    model = 0
 
     nSteps = [5, 7, 9]
     for i in range(len(trainFile)):
@@ -89,6 +92,9 @@ def trainModel():
             fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
             fle.close()
             model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
+            model.save(dataDir + outputFile[i] + '_CNN-LSTM_' + str(step) + "_steps_model")
+    
+    
 
 if __name__ == "__main__":
     trainModel()
