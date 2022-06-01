@@ -36,7 +36,7 @@ def prepareData(trainFile, step):
     return feature, label
 
 #Model creation - Assembles and compiles the whole network model to be used
-def createModel(shape):
+def createTeacherModel(shape):
     #CNN LSTM model creation
     tf.random.set_seed(10)
     
@@ -87,7 +87,7 @@ def trainModel():
         for step in nSteps:
             train_feature, train_label = prepareData(dataDir + trainFile[i], step)
             test_feature, test_label = prepareData(dataDir + testFile[i], step)
-            model = createModel(train_feature.shape)
+            model = createTeacherModel(train_feature.shape)
             metricFile = dataDir + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
             print("Training " + metricFile)
             fle = open(metricFile, 'w')
