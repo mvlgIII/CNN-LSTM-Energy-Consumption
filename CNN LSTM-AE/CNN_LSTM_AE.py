@@ -36,23 +36,25 @@ def prepareData(trainFile, step):
     return feature, label
 
 #Model creation - Assembles and compiles the whole network model to be used
-def createModel(shape):
+def createTeacherModel(shape):
     #CNN LSTM model creation
+    tf.random.set_seed(10)
+    
     model = Sequential()
-    model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(shape[1], shape[2])))
+    model.add(Conv1D(filters=64, kernel_size=4, activation='relu', input_shape=(shape[1], shape[2])))
     model.add(MaxPooling1D(pool_size=2))
-    model.add(Bidirectional(LSTM(50, activation='relu', return_sequences=True)))
+    model.add(Bidirectional(LSTM(300, activation='relu', return_sequences=True)))
     model.add(Dense(1))
     model.add(Flatten())
     model.add(Dense(1))
-    model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adam', metrics=[tf.keras.metrics.RootMeanSquaredError()])
+    model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adamax', metrics=[tf.keras.metrics.RootMeanSquaredError()])
     model.summary()
     #print("Model created!")
     return model
 
 #Training - Fits the model into the data and begins the training while recording metric values
 def startTrain(model, train_feature, train_label, validation_feature, validation_label, metricFile):
-    dataInfo = model.fit(train_feature, train_label, epochs=100, batch_size=32, #batch size multiple of 2^x, early stopping00
+    dataInfo = model.fit(train_feature, train_label, epochs=100, batch_size=128, #batch size multiple of 2^x, early stopping00
                          validation_data=(validation_feature, validation_label),
                          callbacks=[EarlyStopping(monitor='loss', patience=3)])
     #metric = model.evaluate(validation_feature, validation_label)  
@@ -85,7 +87,7 @@ def trainModel():
         for step in nSteps:
             train_feature, train_label = prepareData(dataDir + trainFile[i], step)
             test_feature, test_label = prepareData(dataDir + testFile[i], step)
-            model = createModel(train_feature.shape)
+            model = createTeacherModel(train_feature.shape)
             metricFile = dataDir + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
             print("Training " + metricFile)
             fle = open(metricFile, 'w')
