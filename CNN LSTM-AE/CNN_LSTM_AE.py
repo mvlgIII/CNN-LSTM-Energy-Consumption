@@ -38,12 +38,12 @@ def prepareData(trainFile, step):
 #Model creation - Assembles and compiles the whole network model to be used
 def createModel(shape):
     #CNN LSTM model creation
-    tf.random.set_seed(5)
+    tf.random.set_seed(10)
     
     model = Sequential()
     model.add(Conv1D(filters=64, kernel_size=4, activation='relu', input_shape=(shape[1], shape[2])))
     model.add(MaxPooling1D(pool_size=2))
-    model.add(Bidirectional(LSTM(100, activation='relu', return_sequences=True)))
+    model.add(Bidirectional(LSTM(300, activation='relu', return_sequences=True)))
     model.add(Dense(1))
     model.add(Flatten())
     model.add(Dense(1))
