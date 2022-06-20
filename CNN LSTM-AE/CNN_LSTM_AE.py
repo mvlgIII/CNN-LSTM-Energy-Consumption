@@ -18,6 +18,7 @@ from sklearn.preprocessing import MinMaxScaler
 #Data preprocessing - Formats the data file to a usable format for the model
 def prepareData(trainFile, step):
     trainData = pd.read_csv(trainFile).drop(['Type', 'Time'], axis=1)
+    print(trainData.head())
     #trainData['Time'] = pd.to_datetime(trainData['Time'])
     #for i in range(len(trainData)):
     #    trainData['Time'][i] = trainData['Time'][i].timestamp()
@@ -42,7 +43,7 @@ def prepareData(trainFile, step):
         feature.append(seq_x)
         label.append(seq_y)
         
-    feature, label = np.array(feature).astype(np.float32), np.array(label).astype(np.float32)
+    feature, label = np.array(feature).astype(np.float64), np.array(label).astype(np.float64)
     #print("Shape of feature: {}".format(feature.shape))
     return feature, label
 
@@ -51,13 +52,13 @@ def createTeacherModel(shape):
     #CNN LSTM model creation
     tf.random.set_seed(1)
     model = Sequential()
-    model.add(Conv1D(filters=64, kernel_size=2, activation='sigmoid', input_shape=(shape[1], shape[2])))
+    model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(shape[1], shape[2])))
     model.add(MaxPooling1D(pool_size=2))
     model.add(Bidirectional(LSTM(300, activation='sigmoid', return_sequences=True)))
     model.add(Dense(1))
     model.add(Flatten())
     model.add(Dense(1))
-    model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adam', metrics=[tf.keras.metrics.RootMeanSquaredError()])
+    model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adamax', metrics=[tf.keras.metrics.RootMeanSquaredError()])
     model.summary()
     #print("Model created!")
     return model
@@ -91,7 +92,6 @@ def trainModel():
                  "CENTRALIZED_result"]
     
     model = 0
-    predictions = []
 
     nSteps = [9]
     #Centralized learning approach:
@@ -99,7 +99,7 @@ def trainModel():
         print("Preparing data {}_{}".format(trainFile[2], step))
         train_feature, train_label = prepareData(dataDir + trainFile[2], step)
         test_feature, test_label = prepareData(dataDir + testFile[2], step)
-        print("Feature: {} Label: {}". format(train_feature, train_label))
+        print("Feature: {} Label: {}".format(train_feature, train_label))
         model = createTeacherModel(train_feature.shape)
         metricFile = dataDir + outputFile[2] + "_CNN-LSTM_" + str(step) + "_steps.csv"
         print("Training " + metricFile)
@@ -107,9 +107,8 @@ def trainModel():
         fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
         fle.close()
         model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
-        model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_model")
-        predictions.append(model.predict(test_feature, verbose=False))
-            
+        #model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_model")
+        predictions = model.predict(test_feature, verbose=False)
         print(predictions)
         #studentModel = createStudentModel(predictions.shape)
 
