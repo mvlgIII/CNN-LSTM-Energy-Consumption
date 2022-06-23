@@ -14,7 +14,7 @@ import datetime
 from datetime import datetime
 from sklearn import preprocessing as prc
 from sklearn.preprocessing import MinMaxScaler
-from CNN_LSTM_AE import prepareData, createTeacherModel, createStudentModel, startTrain
+from Centralized_CNN_LSTM import prepareData, createTeacherModel, createStudentModel, startTrain
 
 #Data preprocessing - Formats the data file to a usable format for the model
 def prepareData(trainFile, step):
@@ -31,7 +31,6 @@ def prepareData(trainFile, step):
     scaler = MinMaxScaler()
     trainData = scaler.fit_transform(trainData)
     trainData = pd.DataFrame(trainData)
-    print(trainData.head())
     trainData = trainData.values
 
     feature = []
@@ -69,45 +68,73 @@ def trainModel():
     nSteps = [9]
     for i in range(len(trainFile)):
         for step in nSteps:
+            print("Preparing {} with {} steps".format(trainFile[i], step))
             train_feature, train_label = prepareData(dataDir + trainFile[i], step)
             test_feature, test_label = prepareData(dataDir + testFile[i], step)
             all_features.append(train_feature)
             all_labels.append(train_label)
             all_test_features.append(test_feature)
             all_test_labels.append(test_label)
-            metricFile = dataDir + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
-            print("Training " + metricFile)
+            metricFile = dataDir + "Federated_" + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
+            #print("Training " + metricFile)
             fle = open(metricFile, 'w')
             fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
             fle.close()
     
-    model = createTeacherModel(all_feature[0].shape)
+    model = createTeacherModel(all_features[0].shape)
     globalModel = []
     for i in range(len(trainFile) - 1):
         globalModel.append(model)
     for epoch in range(100):
         subModels = []
+        for i in range(len(trainFile) - 1):
+            metricFile = dataDir + "Federated_" +outputFile[2] + "_CNN-LSTM_" + str(step) + "_steps.csv"
+            devModel = startTrain(globalModel[i],
+                                  all_features[i],
+                                  all_labels[i],
+                                  all_test_features[i],
+                                  all_test_labels[i])
+            subModels.append(devModel)
 
+        sumWeights = []
+        for x in range(len(subModels)):
+            weights = subModels[x].get_weights()
+            if x == 0:
+                for numWeights in range(len(weights)):
+                    weightVal = weights[numWeights] / subModels
+                    sumWeights.append(weightVal)
+            else:
+                for numWeights in range(len(weights)):
+                    weightVal = sumWeights[numWeights] + (weights[numWeights] / len(subModels))
+                    sumWeights[numWeights] = weightVal
+
+        model.set_weights(sumWeights)
+        globalModel.clear()
+        for i in range(len(trainFile) - 1):
+            globalModel.append(model)
+        print("Finished round {}".format(epoch+1))
+            
+    print("Federated learning section finished.")
     
     #Centralized learning approach:
-    for step in nSteps:
-        print("Preparing data {}_{}".format(trainFile[2], step))
+    #for step in nSteps:
+    #    print("Preparing data {}_{}".format(trainFile[2], step))
         
-        print("Test data: {}".format(test_feature))
-        print("Feature: {} Label: {}".format(train_feature.shape, test_label.shape))
-        model = createTeacherModel(train_feature.shape)
-        metricFile = dataDir + outputFile[2] + "_CNN-LSTM_" + str(step) + "_steps.csv"
-        print("Training " + metricFile)
-        fle = open(metricFile, 'w')
-        fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
-        fle.close()
-        model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
-        #model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_model")
-        predictions = model.predict(test_feature, verbose=False)
-        print("Shape of predictions: {}".format(predictions.shape))
-        studentModel = createStudentModel(train_feature.shape)
-        studentMetrics = studentModel.fit(test_feature, predictions, epochs=5, batch_size=64)
-        print(studentMetrics)
+    #    print("Test data: {}".format(test_feature))
+    #    print("Feature: {} Label: {}".format(train_feature.shape, test_label.shape))
+    #    model = createTeacherModel(train_feature.shape)
+    #    metricFile = dataDir + outputFile[2] + "_CNN-LSTM_" + str(step) + "_steps.csv"
+    #    print("Training " + metricFile)
+    #    fle = open(metricFile, 'w')
+    #    fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
+    #    fle.close()
+    #    model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
+    #    #model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_model")
+    #    predictions = model.predict(test_feature, verbose=False)
+    #    print("Shape of predictions: {}".format(predictions.shape))
+    #    studentModel = createStudentModel(train_feature.shape)
+    #    studentMetrics = studentModel.fit(test_feature, predictions, epochs=5, batch_size=64)
+    #    print(studentMetrics)
 
     #student_train_feature
 if __name__ == "__main__":

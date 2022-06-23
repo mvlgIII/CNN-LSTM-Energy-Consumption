@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>0347d18c-001c-47a4-a0c4-733996c66590</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Centralized-CNN_LSTM.py</StartupFile>
+    <StartupFile>Centralized_CNN_LSTM.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,8 +22,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Centralized-CNN_LSTM.py" />
-    <Compile Include="Federated-CNN_LSTM.py">
+    <Compile Include="Centralized_CNN_LSTM.py" />
+    <Compile Include="Federated_CNN_LSTM.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
