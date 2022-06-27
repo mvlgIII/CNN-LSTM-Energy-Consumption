@@ -14,38 +14,22 @@ import datetime
 from datetime import datetime
 from sklearn import preprocessing as prc
 from sklearn.preprocessing import MinMaxScaler
-from Centralized_CNN_LSTM import prepareData, createTeacherModel, createStudentModel, startTrain
+from Centralized_CNN_LSTM import prepareData, createTeacherModel, createStudentModel
 
-#Data preprocessing - Formats the data file to a usable format for the model
-def prepareData(trainFile, step):
-    trainData = pd.read_csv(trainFile).drop(['Type', 'Time'], axis=1)
-    #trainData['Time'] = trainData['Time'].apply(lambda x: datetime.strptime(trainData['Time'][x]).timestamp(), axis=1)
-    #trainData['Time'] = pd.to_datetime(trainData['Time'])
-    #for i in range(len(trainData)):
-    #    trainData['Time'][i] = trainData['Time'][i].timestamp()
-    #    print(trainData['Time'][i])
-    #trainNormal = prc.normalize(trainData)
-    #trainData = pd.DataFrame(trainNormal)
-    #print(trainData.head())
-    #print(trainData.describe())
-    scaler = MinMaxScaler()
-    trainData = scaler.fit_transform(trainData)
-    trainData = pd.DataFrame(trainData)
-    trainData = trainData.values
-
-    feature = []
-    label = []
-    for i in range(len(trainData)):
-        end = i + step
-        if end > len(trainData) - 1:
-            break
-        seq_x, seq_y = trainData[i:end, ], trainData[end, 0] * trainData[end, 1]
-        feature.append(seq_x)
-        label.append(seq_y)
-        
-    feature, label = np.array(feature).astype(np.float64), np.array(label).astype(np.float64)
-    #print("Shape of feature: {}".format(feature.shape))
-    return feature, label
+def startTrain(model, train_feature, train_label, validation_feature, validation_label, metricFile):
+    dataInfo = model.fit(train_feature, train_label, epochs=1, batch_size=128, #batch size multiple of 2^x, early stopping00
+                         validation_data=(validation_feature, validation_label),
+                         callbacks=[EarlyStopping(monitor='loss', patience=3)])
+    #metric = model.evaluate(validation_feature, validation_label)  
+    #print(metric)
+    metric = open(metricFile, 'a')
+    for i in range(len(dataInfo.history['loss'])):
+        metric.write('{}, {}, {}, {}, {}\n'.format(i + 1, dataInfo.history['loss'][i],
+                                                   dataInfo.history['val_loss'][i],
+                                                   dataInfo.history['root_mean_squared_error'][i],
+                                                   dataInfo.history['val_root_mean_squared_error'][i]))
+    metric.close()
+    return model
 
 #Function that contains all the process to train the model
 def trainModel():
@@ -66,7 +50,7 @@ def trainModel():
     all_test_labels = []
 
     nSteps = [9]
-    for i in range(len(trainFile)):
+    for i in range(len(trainFile) - 1):
         for step in nSteps:
             print("Preparing {} with {} steps".format(trainFile[i], step))
             train_feature, train_label = prepareData(dataDir + trainFile[i], step)
@@ -88,12 +72,14 @@ def trainModel():
     for epoch in range(100):
         subModels = []
         for i in range(len(trainFile) - 1):
-            metricFile = dataDir + "Federated_" +outputFile[2] + "_CNN-LSTM_" + str(step) + "_steps.csv"
+            metricFile = dataDir + "Federated_" + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
+            print("Training " + metricFile)
             devModel = startTrain(globalModel[i],
                                   all_features[i],
                                   all_labels[i],
                                   all_test_features[i],
-                                  all_test_labels[i])
+                                  all_test_labels[i],
+                                  metricFile)
             subModels.append(devModel)
 
         sumWeights = []
@@ -101,7 +87,7 @@ def trainModel():
             weights = subModels[x].get_weights()
             if x == 0:
                 for numWeights in range(len(weights)):
-                    weightVal = weights[numWeights] / subModels
+                    weightVal = weights[numWeights] / len(subModels)
                     sumWeights.append(weightVal)
             else:
                 for numWeights in range(len(weights)):
@@ -116,26 +102,7 @@ def trainModel():
             
     print("Federated learning section finished.")
     
-    #Centralized learning approach:
-    #for step in nSteps:
-    #    print("Preparing data {}_{}".format(trainFile[2], step))
-        
-    #    print("Test data: {}".format(test_feature))
-    #    print("Feature: {} Label: {}".format(train_feature.shape, test_label.shape))
-    #    model = createTeacherModel(train_feature.shape)
-    #    metricFile = dataDir + outputFile[2] + "_CNN-LSTM_" + str(step) + "_steps.csv"
-    #    print("Training " + metricFile)
-    #    fle = open(metricFile, 'w')
-    #    fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
-    #    fle.close()
-    #    model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
-    #    #model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_model")
-    #    predictions = model.predict(test_feature, verbose=False)
-    #    print("Shape of predictions: {}".format(predictions.shape))
-    #    studentModel = createStudentModel(train_feature.shape)
-    #    studentMetrics = studentModel.fit(test_feature, predictions, epochs=5, batch_size=64)
-    #    print(studentMetrics)
-
-    #student_train_feature
+    #Insert student learning here
+    
 if __name__ == "__main__":
     trainModel()
