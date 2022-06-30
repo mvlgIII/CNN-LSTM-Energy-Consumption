@@ -43,7 +43,7 @@ def trainModel():
     outputFile = ["KITCHEN_result", "LIVINGROOM_result",
                  "CENTRALIZED_result"]
     
-    model = 0
+    teacherModel = 0
     all_features = []
     all_labels = []
     all_test_features = []
@@ -65,16 +65,19 @@ def trainModel():
             fle.write('epoch, trainloss, validationloss, trainRMSE, validationRMSE\n')
             fle.close()
     
-    model = createTeacherModel(all_features[0].shape)
-    globalModel = []
+    teacherModel = createTeacherModel(all_features[0].shape)
+    #studentModel = createStudentModel(all_features[0].shape)
+    globalTeacherModel = []
+    globalStudentModel = []
     for i in range(len(trainFile) - 1):
-        globalModel.append(model)
+        globalTeacherModel.append(teacherModel)
+        #globalStudentModel.append(studentModel)
     for epoch in range(100):
         subModels = []
         for i in range(len(trainFile) - 1):
             metricFile = dataDir + "Federated_" + outputFile[i] + "_CNN-LSTM_" + str(step) + "_steps.csv"
             print("Training " + metricFile)
-            devModel = startTrain(globalModel[i],
+            devModel = startTrain(globalTeacherModel[i],
                                   all_features[i],
                                   all_labels[i],
                                   all_test_features[i],
@@ -94,10 +97,10 @@ def trainModel():
                     weightVal = sumWeights[numWeights] + (weights[numWeights] / len(subModels))
                     sumWeights[numWeights] = weightVal
 
-        model.set_weights(sumWeights)
-        globalModel.clear()
+        teacherModel.set_weights(sumWeights)
+        globalTeacherModel.clear()
         for i in range(len(trainFile) - 1):
-            globalModel.append(model)
+            globalTeacherModel.append(teacherModel)
         print("Finished round {}".format(epoch+1))
             
     print("Federated learning section finished.")

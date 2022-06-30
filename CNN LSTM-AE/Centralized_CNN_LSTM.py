@@ -81,7 +81,7 @@ def createStudentModel(shape):
 
 #Training - Fits the model into the data and begins the training while recording metric values
 def startTrain(model, train_feature, train_label, validation_feature, validation_label, metricFile):
-    dataInfo = model.fit(train_feature, train_label, epochs=100, batch_size=128, #batch size multiple of 2^x, early stopping00
+    dataInfo = model.fit(train_feature, train_label, epochs=2, batch_size=128, #batch size multiple of 2^x, early stopping00
                          validation_data=(validation_feature, validation_label),
                          callbacks=[EarlyStopping(monitor='loss', patience=3)])
     #metric = model.evaluate(validation_feature, validation_label)  
@@ -125,10 +125,15 @@ def trainModel():
         fle.close()
         model = startTrain(model, train_feature, train_label, test_feature, test_label, metricFile)
         #model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_model")
-        predictions = model.predict(train_feature)
-        predictions = np.array(predictions).astype(np.float64)
+        predictions = model.predict(train_feature, verbose=False)
+        predictions = pd.DataFrame(predictions)
+        print(predictions.head())
         print("Shape of predictions: {}".format(predictions.shape))
-        #studentModel = createStudentModel(train_feature.shape)
+        studentModel = createStudentModel(train_feature.shape)
+        print("Training student model of {}".format(trainFile[2]))
+        studentMetrics = studentModel.fit(train_feature, predictions, epochs=2, batch_size=128,
+                         validation_data=(test_feature, test_label),
+                         callbacks=[EarlyStopping(monitor='loss', patience=3)])
 
     #student_train_feature
 if __name__ == "__main__":
