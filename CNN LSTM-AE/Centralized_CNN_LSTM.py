@@ -73,7 +73,7 @@ def createStudentModel(shape):
     model.add(Dense(1))
     model.add(Flatten())
     model.add(Dense(1))
-    model.compile(loss=tf.keras.losses.MeanSquaredError,
+    model.compile(loss=tf.keras.losses.MeanSquaredError(),
                   optimizer='adamax',
                   metrics=[tf.keras.metrics.RootMeanSquaredError()])
     model.summary()
@@ -109,7 +109,7 @@ def trainModel():
     
     model = 0
 
-    nSteps = [9]
+    nSteps = [7, 9]
     #Centralized learning approach:
     for step in nSteps:
         print("Preparing data {}_{}".format(trainFile[2], step))
@@ -134,6 +134,7 @@ def trainModel():
         studentMetrics = studentModel.fit(train_feature, predictions, epochs=2, batch_size=128,
                          validation_data=(test_feature, test_label),
                          callbacks=[EarlyStopping(monitor='loss', patience=3)])
+
 
     #student_train_feature
 if __name__ == "__main__":
