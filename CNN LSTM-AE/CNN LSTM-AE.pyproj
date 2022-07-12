@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>0347d18c-001c-47a4-a0c4-733996c66590</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>CNN_LSTM_AE.py</StartupFile>
+    <StartupFile>Centralized_CNN_LSTM.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +22,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CNN_LSTM_AE.py" />
+    <Compile Include="Centralized_CNN_LSTM.py" />
+    <Compile Include="Federated_CNN_LSTM.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="..\..\..\..\Documents\Python\VirtualEnvironments\Tensorflow\">
@@ -37,11 +40,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CENTRALIZED_data_record.csv" />
-    <Content Include="CENTRALIZED_test.xlsx" />
+    <Content Include="CENTRALIZED_test.csv" />
     <Content Include="KITCHEN_data_record.csv" />
-    <Content Include="KITCHEN_test.xlsx" />
+    <Content Include="KITCHEN_test.csv" />
     <Content Include="LIVINGROOM_data_record.csv" />
-    <Content Include="LIVINGROOM_test.xlsx" />
+    <Content Include="LIVINGROOM_test.csv" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
