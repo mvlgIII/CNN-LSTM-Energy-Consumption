@@ -168,10 +168,7 @@ def trainModel():
             livingRmse = rmse(livingPrediction, all_test_labels[1])
             allKitchenRmse.append(kitchenRmse)
             allLivingRmse.append(livingRmse)
-
-            #Save teacher model
-            if (epoch + 1) % 5 == 0:
-                model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_{}_epoch_model".format(epoch + 1))
+            model.save(dataDir + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_{}_epoch_model".format(epoch + 1))
         results = pd.read_csv(metricFile)
         results['kitchenRMSE'] = allKitchenRmse
         results['livingRMSE'] = allLivingRmse
@@ -213,8 +210,7 @@ def trainModel():
             livingRmse = rmse(livingPrediction, all_test_labels[1])
             allKitchenRmse.append(kitchenRmse)
             allLivingRmse.append(livingRmse)
-            if (epoch + 1) % 5 == 0:
-                studentModel.save(dataDir + "_student_" + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_{}_epoch_model".format(epoch+1))
+            studentModel.save(dataDir + "_student_" + outputFile[2] + '_CNN-LSTM_' + str(step) + "_steps_{}_epoch_model".format(epoch+1))
 
         results = pd.read_csv(studentMetricFile)
         results['kitchenRMSE'] = allKitchenRmse
