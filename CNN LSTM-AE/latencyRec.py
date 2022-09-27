@@ -43,18 +43,20 @@ def predictModel():
 
     step = 7
 
-    #for i in range(len(trainFile)):
-    #    print("Preparing Federated {} with {} steps".format(trainFile[i], step))
-    #    train_feature, train_label = prepareData(dataDir + trainFile[i], step)
-    #    test_feature, test_label = prepareData(dataDir + testFile[i], step)
-    #    predictions = teacherModel.predict(train_feature, verbose=False)
-    #    all_features.append(train_feature)
-    #    all_labels.append(train_label)
-    #    all_test_features.append(test_feature)
-    #    all_test_labels.append(test_label)
-    #    all_predictions.append(predictions)
+
+    for i in range(len(trainFile)):
+        print("Preparing Federated {} with {} steps".format(trainFile[i], step))
+        train_feature, train_label = prepareData(dataDir + trainFile[i], step)
+        test_feature, test_label = prepareData(dataDir + testFile[i], step)
+        predictions = teacherModel.predict(train_feature, verbose=False)
+        all_features.append(train_feature)
+        all_labels.append(train_label)
+        all_test_features.append(test_feature)
+        all_test_labels.append(test_label)
+        all_predictions.append(predictions)
      
     #teacherModel.predict(all_features[0])
+
     converter = tf.lite.TFLiteConverter.from_keras_model(livingModel)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.experimental_new_converter = True
@@ -65,6 +67,21 @@ def predictModel():
     #studentModel.predict(all_features[0])
     #kitchenModel.predict(all_features[1])
     #livingModel.predict(all_features[0])
+
+    interpreter = tf.lite.Interpreter(model_path="liteLiving.tflite")
+    interpreter.allocate_tensors()
+    all_inferences = []
+
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    for i in range(len(all_test_features[1])):
+        x_tensor = np.expand_dims(all_test_features[1][i], axis=0).astype(np.float32)
+        interpreter.set_tensor(input_details[0]['index'], x_tensor)
+        interpreter.invoke()
+        output_data = interpreter.get_tensor(output_details[0]['index'])
+        all_inferences.append(output_data[0][0])
+    print(rmse(all_predictions[1], all_test_labels[1]))
+    print(rmse(all_inferences, all_test_labels[1]))
 
 if __name__ == "__main__":
     predictModel()

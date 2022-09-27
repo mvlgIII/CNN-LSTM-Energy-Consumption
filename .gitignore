@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+CNN LSTM-AE/CENTRALIZED_result_CNN-LSTM_5_steps.csv
+CNN LSTM-AE/CENTRALIZED_result_CNN-LSTM_7_steps.csv
+CNN LSTM-AE/CENTRALIZED_result_CNN-LSTM_9_steps.csv
+CNN LSTM-AE/Federated_CENTRALIZED_result_CNN-LSTM_9_steps.csv
+CNN LSTM-AE/Federated_KITCHEN_result_CNN-LSTM_9_steps.csv
+CNN LSTM-AE/Federated_LIVINGROOM_result_CNN-LSTM_9_steps.csv
+CNN LSTM-AE/Tensorflow/
