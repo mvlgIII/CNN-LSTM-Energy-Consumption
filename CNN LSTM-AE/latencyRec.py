@@ -14,6 +14,7 @@ import pandas as pd
 import datetime, copy
 from datetime import datetime
 from sklearn import preprocessing as prc
+from memory_profiler import memory_usage
 from sklearn.preprocessing import MinMaxScaler
 from Centralized_CNN_LSTM import prepareData, createStudentModel, rmse
 
@@ -77,7 +78,8 @@ def predictModel():
     for i in range(len(all_test_features[1])):
         x_tensor = np.expand_dims(all_test_features[1][i], axis=0).astype(np.float32)
         interpreter.set_tensor(input_details[0]['index'], x_tensor)
-        interpreter.invoke()
+        print(np.mean(memory_usage(interpreter.invoke())))
+        #interpreter.invoke()
         output_data = interpreter.get_tensor(output_details[0]['index'])
         all_inferences.append(output_data[0][0])
     print(rmse(all_predictions[1], all_test_labels[1]))
