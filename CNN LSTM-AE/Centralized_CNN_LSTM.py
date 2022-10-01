@@ -1,7 +1,6 @@
 from pandas._libs.tslibs.timestamps import Timestamp
 from pandas.core.tools.datetimes import to_datetime
 import tensorflow as tf
-import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.python.keras import optimizers, layers
 from tensorflow.keras.models import Sequential, Model
