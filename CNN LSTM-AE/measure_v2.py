@@ -14,7 +14,7 @@ from adafruit_ads1x15.analog_in import AnalogIn
 from Adafruit_IO import *
 
 username = 'jorrelbrandonz'
-accKey = 'aio_gUqc81QlD3sgZzsMPrO1Nb7UXy4Q'
+accKey = 'aio_YvNa08cYcfAaWbCSc4zTzaomMzkk'
 aio = Client(username, accKey)
 i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
@@ -103,7 +103,7 @@ def runMonitor(offset, classif, monitorData):
         
         data = [currentTime, round(peakVoltage, 3), round(peakCurrent, 3), classification]
         monitorData.put(data, block=False)
-        time.sleep(60)
+        time.sleep(10)
 
 def saveFile(monitorData):
     global endApp
