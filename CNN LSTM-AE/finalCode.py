@@ -122,7 +122,6 @@ def saveFile(monitorData):
                 csv_file.close()
             if(monitorData.empty()):
                 features, labels = prepareData("data_record.csv", 7)
-                print(features)
                 interpreter = tf.lite.Interpreter(model_path="liteKitchen.tflite")
                 interpreter.allocate_tensors()
                 input_details = interpreter.get_input_details()
@@ -139,9 +138,12 @@ def saveFile(monitorData):
                     output_data = interpreter.get_tensor(output_details[0]['index'])
                     output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
                     all_interpretations.append(round(output_data, 3))
-
-                print(len(all_interpretations))
-#                 trainData['Time'] = pd.to_datetime(trainData['Time'])
+                data.append(all_interpretations[len(all_interpretations)-1])
+                with open('web_record.csv', 'a', newline='') as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    csv_writer.writerow(data)
+                    csv_file.close()
+                #                 trainData['Time'] = pd.to_datetime(trainData['Time'])
 #                 timeIntervals = []
 #                 timeInterval = trainData['Time'][0] - trainData['Time'][0]
 #                 timeInterval = timeInterval.total_seconds()
