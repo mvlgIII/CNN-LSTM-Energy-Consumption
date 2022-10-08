@@ -22,7 +22,7 @@ from sklearn.preprocessing import MinMaxScaler
         
 #Data preprocessing - Formats the data file to a usable format for the model
 def prepareData(trainFile, step):
-    trainData = pd.read_csv(trainFile).drop(['Type'], axis=1)
+    trainData = pd.read_csv(trainFile, names=['Time', 'Voltage', 'Current', 'Type']).drop(['Type'], axis=1)
     #print(trainData.head())
 
     #Time interval between previous and current sample

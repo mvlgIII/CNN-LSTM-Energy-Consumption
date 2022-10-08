@@ -70,14 +70,15 @@ def predictModel():
     #kitchenModel.predict(all_features[1])
     #livingModel.predict(all_features[0])
 
-    interpreter = tf.lite.Interpreter(model_path="liteLiving.tflite")
+    interpreter = tf.lite.Interpreter(model_path="liteStudent.tflite")
     interpreter.allocate_tensors()
     all_inferences = []
 
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-    for i in range(len(all_test_features[1])):
-        x_tensor = np.expand_dims(all_test_features[1][i], axis=0).astype(np.float32)
+    for i in range(len(all_test_features[0])):
+        print(all_test_features[0][i])
+        x_tensor = np.expand_dims(all_test_features[0][i], axis=0).astype(np.float32)
         interpreter.set_tensor(input_details[0]['index'], x_tensor)
         #process = psutil.Process(os.getpid())
         interpreter.invoke()
@@ -87,7 +88,7 @@ def predictModel():
         all_inferences.append(output_data[0][0])
         #print(all_inferences)
     #print(rmse(all_predictions[1], all_test_labels[1]))
-    print(rmse(all_inferences, all_test_labels[1]))
+    print(rmse(all_inferences, all_test_labels[0]))
     print(np.array(mem_list).mean())
 
 if __name__ == "__main__":
