@@ -16,7 +16,6 @@ import adafruit_ads1x15.ads1115 as ADS
 from sklearn.preprocessing import MinMaxScaler
 from adafruit_ads1x15.analog_in import AnalogIn
 from Adafruit_IO import *
-from Centralized_CNN_LSTM import prepareData
 
 username = 'jorrelbrandonz'
 accKey = 'aio_YvNa08cYcfAaWbCSc4zTzaomMzkk'
@@ -30,6 +29,55 @@ stepValue = 66 #mV
 connType = 0
 header_text = ['Date', 'Voltage', 'Current', 'Connection Type']
 endApp = False
+
+def prepareData(trainFile, step):
+    trainData = pd.read_csv(trainFile, names=['Time', 'Voltage', 'Current', 'Type']).drop(['Type'], axis=1)
+    #print(trainData.head())
+
+    #Time interval between previous and current sample
+
+    #Date Time Format
+    #trainData['Time'] = trainData['Time'].apply(lambda x: datetime.strptime(trainData['Time'][x]).timestamp(), axis=1)
+    trainData['Time'] = pd.to_datetime(trainData['Time'])
+    #for i in range(len(trainData)):
+    #    trainData['Time'][i] = trainData['Time'][i].timestamp()
+    #    print(trainData['Time'][i])
+    
+    #Time Interval Format
+    timeIntervals = []
+    timeInterval = trainData['Time'][0] - trainData['Time'][0]
+    timeInterval = timeInterval.total_seconds()
+    timeIntervals.append(timeInterval)
+    for i in range(len(trainData)):
+        if i > 0:
+            timeInterval = trainData['Time'][i] - trainData['Time'][i-1]
+            timeInterval = timeInterval.total_seconds()
+            timeIntervals.append(timeInterval)
+    #print(timeIntervals)
+    trainData['TimeInterval'] = timeIntervals
+    trainData['TimeInterval'] = trainData['TimeInterval'].to_numpy().astype(np.float64)
+    trainData = trainData.drop(['Time'], axis=1)
+
+#     scaler = MinMaxScaler()
+#     trainData = scaler.fit_transform(trainData)
+#     trainData = pd.DataFrame(trainData)
+#     print(trainData.head())
+    trainData = trainData.values
+
+    feature = []
+    label = []
+    for i in range(len(trainData)):
+        end = i + step
+        if end > len(trainData) - 1:
+            break
+        seq_x, seq_y = trainData[i+1:end+1, ], trainData[end, 0] * trainData[end, 1]
+        feature.append(seq_x)
+        label.append(seq_y)
+    
+    feature, label = np.array(feature).astype(np.float64), np.array(label).astype(np.float64)
+    feature = feature[-1]
+    #print("Shape of feature: {}".format(feature.shape))
+    return feature, label
 
 
 def getOffset():
@@ -91,7 +139,7 @@ def runMonitor(offset, classif, monitorData):
             except IndexError:
                 pass
             
-        peakVoltage = float(maxVoltage * 61.02)
+        peakVoltage = float(maxVoltage * 79.59)
         peakCurrent = float((maxCurrent - offset) / 0.066)
         Vrms = peakVoltage/math.sqrt(2)
         Irms = peakCurrent/math.sqrt(2)
@@ -115,34 +163,54 @@ def saveFile(monitorData):
     while not endApp:
         try:
             data = monitorData.get(block=True, timeout=None)
-            print(data)
+            print("Measured: {}".format(data))
             with open('data_record.csv', 'a', newline='') as csv_file:
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(data)
                 csv_file.close()
             if(monitorData.empty()):
                 features, labels = prepareData("data_record.csv", 7)
+                tempFeatures = []
+                for i in range(len(features)):
+                    tempFeatures.append(features[i][0] * features[i][1])
+                maxPower = max(tempFeatures)
+                minPower = min(tempFeatures)
+                scaler = MinMaxScaler()
+                normFeatures = scaler.fit_transform(features)
                 interpreter = tf.lite.Interpreter(model_path="liteKitchen.tflite")
                 interpreter.allocate_tensors()
                 input_details = interpreter.get_input_details()
                 output_details = interpreter.get_output_details()
-                all_interpretations = []
-                trainData = pd.read_csv('data_record.csv', names=['Time', 'Voltage', 'Current', 'Type']).drop('Type', axis=1)
-                maxPower = trainData['Voltage'] * trainData['Current']
-                minPower = maxPower.min()
-                maxPower = maxPower.max()
-                for i in range(len(features)):
-                    x_tensor = np.expand_dims(features[i], axis=0).astype(np.float32)
-                    interpreter.set_tensor(input_details[0]['index'], x_tensor)
-                    interpreter.invoke()
-                    output_data = interpreter.get_tensor(output_details[0]['index'])
-                    output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
-                    all_interpretations.append(round(output_data, 3))
-                data.append(all_interpretations[len(all_interpretations)-1])
+                x_tensor = np.expand_dims(normFeatures, axis=0).astype(np.float32)
+                interpreter.set_tensor(input_details[0]['index'], x_tensor)
+                interpreter.invoke()
+                output_data = interpreter.get_tensor(output_details[0]['index'])
+                output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
+                data.append(output_data)
+                print("Predicted: {}".format(data))
                 with open('web_record.csv', 'a', newline='') as csv_file:
                     csv_writer = csv.writer(csv_file)
                     csv_writer.writerow(data)
                     csv_file.close()
+#                 all_interpretations = []
+#                 trainData = pd.read_csv('CENTRALIZED_data_record.csv', names=['Time', 'Voltage', 'Current', 'Type']).drop('Type', axis=1)
+                #trainData = trainData.drop('Time', axis=1)
+                #scaler = MinMaxScaler()
+                #trainData = scaler.inverse_transform(trainData)
+                #trainData = pd.DataFrame(trainData, columns=['Voltage', 'Current'])
+#                 maxPower = trainData['Voltage'] * trainData['Current']
+#                 minPower = maxPower.min()
+#                 maxPower = maxPower.max()
+#                 for i in range(len(features)):
+#                     
+#                     output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
+#                     all_interpretations.append(round(output_data, 3))
+#                 data.append(all_interpretations[len(all_interpretations)-2])
+#                 all_interpretations.clear()
+#                 with open('web_record.csv', 'a', newline='') as csv_file:
+#                     csv_writer = csv.writer(csv_file)
+#                     csv_writer.writerow(data)
+#                     csv_file.close()
                 #                 trainData['Time'] = pd.to_datetime(trainData['Time'])
 #                 timeIntervals = []
 #                 timeInterval = trainData['Time'][0] - trainData['Time'][0]
