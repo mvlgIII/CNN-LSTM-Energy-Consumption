@@ -156,7 +156,7 @@ def runMonitor(offset, classif, monitorData):
         
         data = [currentTime, round(peakVoltage, 3), abs(round(peakCurrent, 3)), classification]
         monitorData.put(data, block=False)
-        time.sleep(20)
+        time.sleep(59)
 
 def saveFile(monitorData):
     global endApp
