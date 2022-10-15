@@ -19,7 +19,7 @@ aio = Client(username, accKey)
 i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
 A0 = AnalogIn(ads, ADS.P0)
-A1 = AnalogIn(ads, ADS.P1)
+A1 = AnalogIn(ads, ADS.P3)
 samples = 200
 stepValue = 66 #mV
 connType = 0
@@ -86,11 +86,12 @@ def runMonitor(offset, classif, monitorData):
             except IndexError:
                 pass
             
+        if(maxCurrent < 0):
+            maxCurrent = 0
         peakVoltage = float(maxVoltage * 80.6)
         peakCurrent = float((maxCurrent - offset) / 0.066)
         Vrms = peakVoltage/math.sqrt(2)
         Irms = peakCurrent/math.sqrt(2)
-        
         #print("Current: {:>5.3f}".format(maxCurrent))
         maxVoltage = 0
         maxCurrent = 0
