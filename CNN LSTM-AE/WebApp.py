@@ -7,9 +7,15 @@ import pandas as pd
 
 app = Dash(__name__)
 
+df = pd.read_csv('web_record.csv', names=["Time", "Voltage", "Current", "Type", "Prediction"])
+df['Time'] = pd.to_datetime(df['Time'])
+df['Power'] = pd.DataFrame.abs(df['Voltage'] * df['Current'])
+fig = px.line(df, x="Time", y=["Voltage", "Current", "Power", "Prediction"])
+
 app.layout = html.Div(children=[
     dcc.Graph(
         id='example-graph',
+        figure=fig,
     ),
 
     dcc.Interval(
@@ -31,4 +37,4 @@ def update_line_graph(n):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True,port=8080,host='192.168.1.7')
+    app.run_server(debug=True,port=8080,host='192.168.1.5')
