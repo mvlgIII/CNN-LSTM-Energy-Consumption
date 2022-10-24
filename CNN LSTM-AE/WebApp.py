@@ -7,15 +7,21 @@ import pandas as pd
 
 app = Dash(__name__)
 
-df = pd.read_csv('web_record.csv', names=["Time", "Voltage", "Current", "Type", "Prediction"])
-df['Time'] = pd.to_datetime(df['Time'])
-df['Power'] = pd.DataFrame.abs(df['Voltage'] * df['Current'])
-fig = px.line(df, x="Time", y=["Voltage", "Current", "Power", "Prediction"])
-
 app.layout = html.Div(children=[
+    html.Label('Duration'),
+    dcc.Dropdown(
+        id='duration',
+        options=[
+            {'label': '1 hour', 'value':'1 hour'},
+            {'label': '3 hour', 'value':'3 hours'},
+            {'label': '1 day', 'value':'1 day'},
+            {'label': '1 week', 'value':'1 week'},
+        ],
+        value='1 hour'
+    ),
+    
     dcc.Graph(
         id='example-graph',
-        figure=fig,
     ),
 
     dcc.Interval(
