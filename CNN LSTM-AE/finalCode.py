@@ -5,7 +5,6 @@ import math
 import threading
 import keyboard
 import csv
-import datetime
 import queue
 import traceback
 import concurrent.futures
@@ -13,6 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import adafruit_ads1x15.ads1115 as ADS
+from datetime import datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
 from adafruit_ads1x15.analog_in import AnalogIn
 from Adafruit_IO import *
@@ -150,7 +150,7 @@ def runMonitor(offset, classif, monitorData):
         maxVoltage = 0
         maxCurrent = 0
         #print("{:>5.3f}\t{:>5.3f}\t".format(Vrms, peakCurrent))
-        currentTime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        currentTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         try:
             classification = classif.get(block=False)
         except queue.Empty:
@@ -170,30 +170,59 @@ def saveFile(monitorData):
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(data)
                 csv_file.close()
-            if(monitorData.empty()):
-                features, labels = prepareData("data_record.csv", 7)
-                tempFeatures = []
-                for i in range(len(features)):
-                    tempFeatures.append(features[i][0] * features[i][1])
-                maxPower = max(tempFeatures)
-                minPower = min(tempFeatures)
-                scaler = MinMaxScaler()
+            aveVoltage = 0
+            aveCurrent = 0
+            features, labels = prepareData("data_record.csv", 7)
+            tempFeatures = []
+            for i in range(len(features)):
+                tempFeatures.append(features[i][0] * features[i][1])
+                aveVoltage += features[i][0]
+                aveCurrent += features[i][1]
+            maxPower = max(tempFeatures)
+            minPower = min(tempFeatures)
+            tempFeatures.clear()
+            aveVoltage = aveVoltage / len(features)
+            aveCurrent = aveCurrent / len(features)
+            scaler = MinMaxScaler()
+            normFeatures = scaler.fit_transform(features)
+            interpreter = tf.lite.Interpreter(model_path="liteKitchen.tflite")
+            interpreter.allocate_tensors()
+            input_details = interpreter.get_input_details()
+            output_details = interpreter.get_output_details()
+            x_tensor = np.expand_dims(normFeatures, axis=0).astype(np.float32)
+            interpreter.set_tensor(input_details[0]['index'], x_tensor)
+            interpreter.invoke()
+            output_data = interpreter.get_tensor(output_details[0]['index'])
+            output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
+            df = pd.read_csv('web_record.csv')
+            df = df.head(-360)
+            data.append(output_data)
+            print(data)
+            df.loc[len(df)] = data
+            df.to_csv('web_record.csv', index=False)
+
+            for i in range(360):
                 normFeatures = scaler.fit_transform(features)
-                interpreter = tf.lite.Interpreter(model_path="liteKitchen.tflite")
-                interpreter.allocate_tensors()
-                input_details = interpreter.get_input_details()
-                output_details = interpreter.get_output_details()
                 x_tensor = np.expand_dims(normFeatures, axis=0).astype(np.float32)
                 interpreter.set_tensor(input_details[0]['index'], x_tensor)
                 interpreter.invoke()
                 output_data = interpreter.get_tensor(output_details[0]['index'])
                 output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
-                data.append(output_data)
-                print("Predicted: {}".format(data))
-                with open('web_record.csv', 'a', newline='') as csv_file:
-                    csv_writer = csv.writer(csv_file)
-                    csv_writer.writerow(data)
-                    csv_file.close()
+                df = pd.read_csv('web_record.csv')
+                newTime = df.iloc[-1, 0]
+                newTime = datetime.strptime(newTime, '%Y-%m-%d %H:%M:%S').replace(second=0)
+                newTime = newTime + timedelta(minutes=+1)
+                temp_data = [newTime.strftime('%Y-%m-%d %H:%M:%S'), "", "", 0, output_data]
+                    #print(temp_data)
+                df.loc[len(df)] = temp_data
+                df.to_csv('web_record.csv', index=False)
+                temp_data = np.array([[aveVoltage, aveCurrent, 60.0]])
+                features = np.append(features, temp_data, axis=0)
+                features = features[1:]
+    
+            print("Predicted: {}".format(data))
+                
+                    
 #                 all_interpretations = []
 #                 trainData = pd.read_csv('CENTRALIZED_data_record.csv', names=['Time', 'Voltage', 'Current', 'Type']).drop('Type', axis=1)
                 #trainData = trainData.drop('Time', axis=1)

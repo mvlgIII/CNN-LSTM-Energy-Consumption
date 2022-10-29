@@ -35,6 +35,34 @@ app.layout = html.Div(children=[
               Input('interval-component', 'n_intervals'))
 def update_line_graph(n):
     df = pd.read_csv('web_record.csv', names=["Time", "Voltage", "Current", "Type", "Prediction"])
+#     features, labels = prepareData('data_record.csv', 7)
+#     duration = 60
+#     scaler = MinMaxScaler()
+#     print(features)
+#     for i in range(duration):
+#         normFeatures = scaler.fit_transform(features)
+#         interpreter = tf.lite.Interpreter(model_path="liteKitchen.tflite")
+#         interpreter.allocate_tensors()
+#         input_details = interpreter.get_input_details()
+#         output_details = interpreter.get_output_details()
+#         x_tensor = np.expand_dims(normFeatures, axis=0).astype(np.float32)
+#         interpreter.set_tensor(input_details[0]['index'], x_tensor)
+#         interpreter.invoke()
+#         output_data = interpreter.get_tensor(output_details[0]['index'])
+#         output_data = (output_data[0][0] * (maxPower - minPower)) + minPower
+        
+        
+#     for i in range(len(features)):
+#         aveVoltage += features[i][0]
+#         aveCurrent += features[i][1]
+#     aveVoltage = aveVoltage / len(features)
+#     aveCurrent = aveCurrent / len(features)
+#     
+#     for i in range(duration):
+#         scaler = MinMaxScaler()
+#         normFeatures = scaler.fit_transform(features)
+        
+    
     df['Time'] = pd.to_datetime(df['Time'])
     df['Power'] = pd.DataFrame.abs(df['Voltage'] * df['Current'])
     fig = px.line(df, x="Time", y=["Voltage", "Current", "Power", "Prediction"])
@@ -43,4 +71,4 @@ def update_line_graph(n):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True,port=8080,host='192.168.1.5')
+    app.run_server(debug=False,port=8080,host='192.168.1.157')
