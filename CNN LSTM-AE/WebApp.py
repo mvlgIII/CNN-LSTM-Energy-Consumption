@@ -13,9 +13,9 @@ app.layout = html.Div(children=[
         id='duration',
         options=[
             {'label': '1 hour', 'value':'1 hour'},
-            {'label': '3 hour', 'value':'3 hours'},
-            {'label': '1 day', 'value':'1 day'},
-            {'label': '1 week', 'value':'1 week'},
+            {'label': '2 hours', 'value':'2 hours'},
+            {'label': '4 hours', 'value':'4 hours'},
+            {'label': '6 hours', 'value':'6 hours'},
         ],
         value='1 hour'
     ),
