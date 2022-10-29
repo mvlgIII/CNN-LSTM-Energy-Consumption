@@ -32,9 +32,11 @@ app.layout = html.Div(children=[
 ])
 
 @app.callback(Output('example-graph', 'figure'),
-              Input('interval-component', 'n_intervals'))
-def update_line_graph(n):
+              Input('interval-component', 'n_intervals'),
+             Input('duration', 'value'))
+def update_line_graph(n, selected_duration):
     df = pd.read_csv('web_record.csv', names=["Time", "Voltage", "Current", "Type", "Prediction"])
+    duration = 360 - int(selected_duration[:-5]) * 60
 #     features, labels = prepareData('data_record.csv', 7)
 #     duration = 60
 #     scaler = MinMaxScaler()
